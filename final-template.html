@@ -1,0 +1,319 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+
+	<title>Weather Station</title>
+	<meta name="description" content="Weather Station">
+	<meta name="author" content="Kenneth Tsui">
+
+	<link rel="stylesheet" href="styles.css">
+	
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js"></script>
+	<script>
+	
+	function update() {
+		var monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+		var weekdayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+		var apikey = "[REPLACE_WITH_PERSONAL_KEY_FROM_APIXU]";
+		var zipcode = "[REPLACE_WITH_DESIRED_ZIPCODE]";
+		var url = "https://api.apixu.com/v1/forecast.json?key=" + apikey + "&q=" + zipcode + "&days=6";
+		$.getJSON( url, function( data ) {
+			var offset = 1;
+			var date = new Date();
+			var days = data['forecast']['forecastday'];
+			// Set Last Updated Text
+			$("#last-updated").html("Updated: " + date.toUTCString());
+			// Parse Current and 12-Hour Data
+			$("#current-month").html(monthNames[date.getMonth()]);
+			$("#current-day").html(date.getDate());
+			$("#current-weekday").html(weekdayNames[date.getDay()]);
+			$("#current-temp").html(Math.round(days[0]['hour'][date.getHours()]['temp_f']) + "&deg;F");
+			$("#current-wind").html(Math.round(days[0]['hour'][date.getHours()]['wind_mph']) + " mi/h");
+			$("#current-humidity").html(Math.round(days[0]['hour'][date.getHours()]['humidity']) + "%");
+			$("#current-condition").html(days[0]['hour'][date.getHours()]['condition']['text']);
+			$("#current-icon").attr("src", "icons/" + data['current']['condition']['icon'].split("/")[6].split(".")[0] + ".svg");
+			var temps = [];
+			var min = 0;
+			var max = 0;
+			var hour = date.getHours() + 1;
+			var d = 0;
+			for (var i = 1; i < 13; i ++) {
+				if (hour == 24) {
+					d = 1;
+					hour = 0;
+				}
+				var temp = Math.round(days[d]['hour'][hour]['temp_f']);
+				if (i == 1) {
+					min = temp;
+					max = temp;
+				}
+				else if (min >= temp) {
+					min = temp;
+				}
+				else if (max <= temp) {
+					max = temp;
+				}
+				temps[i - 1] = temp;
+				$("#ht" + i).html(temp);
+				var ampm = days[d]['hour'][hour]['time'].split(" ")[1].split(":")[0] > 11 ? "PM" : "AM";
+				var h = days[d]['hour'][hour]['time'].split(" ")[1].split(":")[0];
+				if (h == 0) {
+					h = 12;
+				}
+				else if (h > 12) {
+					h -= 12;
+				}
+				h = Math.round(h);
+				var m = days[d]['hour'][hour]['time'].split(" ")[1].split(":")[1];
+				$("#hour" + i).html(h + ampm);
+				hour ++;
+			}
+			var delta_height = (window.innerHeight / 3) / (max - min);
+			for (var i = 1; i < 13; i ++) {
+				$("#bar" + i).css("height", min + (temps[i - 1] - min) * delta_height + "px");
+			}
+			// Parse Next 5 Days Data
+			for (var i = 0; i < 5; i ++) {
+				date.setDate(date.getDate() + offset);
+				var month = date.getMonth();
+				$("#dm" + i).html(monthNames[month]);
+				var day = date.getDate();
+				$("#dd" + i).html(day);
+				var week = date.getDay();
+				$("#dw" + i).html(weekdayNames[week]);
+				var high = days[i + offset]['day']['maxtemp_f'];
+				$("#dh" + i).html(Math.round(high))
+				var low = days[i + offset]['day']['mintemp_f'];
+				$("#dl" + i).html(Math.round(low));
+				var icon = days[i + offset]['day']['condition']['icon'].split("/")[6].split(".")[0];
+				$("#di" + i).attr("src", "icons/" + icon + ".svg");
+			}
+		});
+	}
+	
+	update();
+	setInterval(update, 1000*60*30);
+	</script>
+
+</head>
+
+<body>
+	<table id="t-half">
+		<tr>
+			<td id="current-conditions">
+				<div id="current-details-date">
+					<span id="last-updated">Updated:</span>
+					<div>
+						<span id="current-month"></span>
+						<span id="current-day"></span>
+					</div>
+					<div>
+						<span id="current-weekday"></span>
+					</div>
+				</div>
+				<div id="current-details-numbers">
+					<span class="numbers" id="current-temp"></span>
+					<div class="numbers" id="current-others">
+						<span id="current-wind"></span>
+						<span id="current-humidity"></span>
+					</div>
+				</div>
+			</td>
+			<td id="current-display">
+				<span id="current-condition"></span>
+				<img id="current-icon" src="." alt=".">
+			</td>
+			<td id="hours-container">
+			<div class="holder" id="holder1">
+				<span class="temp" id="ht1">
+				</span>
+				<span class="bar" id="bar1">
+				</span>
+				<span class="hour" id="hour1">
+				</span>
+			</div>
+			<div class="holder" id="holder2">
+				<span class="temp" id="ht2">
+				</span>
+				<span class="bar" id="bar2">
+				</span>
+				<span class="hour" id="hour2">
+				</span>
+			</div>
+			<div class="holder" id="holder3">
+				<span class="temp" id="ht3">
+				</span>
+				<span class="bar" id="bar3">
+				</span>
+				<span class="hour" id="hour3">
+				</span>
+			</div>
+			<div class="holder" id="holder4">
+				<span class="temp" id="ht4">
+				</span>
+				<span class="bar" id="bar4">
+				</span>
+				<span class="hour" id="hour4">
+				</span>
+			</div>
+			<div class="holder" id="holder5">
+				<span class="temp" id="ht5">
+				</span>
+				<span class="bar" id="bar5">
+				</span>
+				<span class="hour" id="hour5">
+				</span>
+			</div>
+			<div class="holder" id="holder6">
+				<span class="temp" id="ht6">
+				</span>
+				<span class="bar" id="bar6">
+				</span>
+				<span class="hour" id="hour6">
+				</span>
+			</div>
+			<div class="holder" id="holder7">
+				<span class="temp" id="ht7">
+				</span>
+				<span class="bar" id="bar7">
+				</span>
+				<span class="hour" id="hour7">
+				</span>
+			</div>
+			<div class="holder" id="holder8">
+				<span class="temp" id="ht8">
+				</span>
+				<span class="bar" id="bar8">
+				</span>
+				<span class="hour" id="hour8">
+				</span>
+			</div>
+			<div class="holder" id="holder9">
+				<span class="temp" id="ht9">
+				</span>
+				<span class="bar" id="bar9">
+				</span>
+				<span class="hour" id="hour9">
+				</span>
+			</div>
+			<div class="holder" id="holder10">
+				<span class="temp" id="ht10">
+				</span>
+				<span class="bar" id="bar10">
+				</span>
+				<span class="hour" id="hour10">
+				</span>
+			</div>
+			<div class="holder" id="holder11">
+				<span class="temp" id="ht11">
+				</span>
+				<span class="bar" id="bar11">
+				</span>
+				<span class="hour" id="hour11">
+				</span>
+			</div>
+			<div class="holder" id="holder12">
+				<span class="temp" id="ht12">
+				</span>
+				<span class="bar" id="bar12">
+				</span>
+				<span class="hour" id="hour12">
+				</span>
+			</div>
+			</td>
+		</tr>
+	</table>
+	
+	<table id="b-half">
+		<tr>
+			<td>
+				<div class="top-cal">
+					<span class="center month" id="dm0"></span>
+					<span class="center day" id="dd0"></span>
+				</div>
+				<div class="bot-cal">
+					<span class="center week" id="dw0"></span>
+				</div>
+				<div class="weather-icon">
+					<span class="center icon"><img id="di0" src="." alt="."></span>
+				</div>
+				<div class="temps">
+					<span class="center highs" id="dh0"></span>
+					<span class="center divider">/</span>
+					<span class="center lows" id="dl0"></span>
+				</div>
+			</td>
+			<td>
+				<div class="top-cal">
+					<span class="center month" id="dm1"></span>
+					<span class="center day" id="dd1"></span>
+				</div>
+				<div class="bot-cal">
+					<span class="center week" id="dw1"></span>
+				</div>
+				<div class="weather-icon">
+					<span class="center icon"><img id="di1" src="." alt="."></span>
+				</div>
+				<div class="temps">
+					<span class="center highs" id="dh1"></span>
+					<span class="center divider">/</span>
+					<span class="center lows" id="dl1"></span>
+				</div>
+			</td>
+			<td>
+				<div class="top-cal">
+					<span class="center month" id="dm2"></span>
+					<span class="center day" id="dd2"></span>
+				</div>
+				<div class="bot-cal">
+					<span class="center week" id="dw2"></span>
+				</div>
+				<div class="weather-icon">
+					<span class="center icon"><img id="di2" src="." alt="."></span>
+				</div>
+				<div class="temps">
+					<span class="center highs" id="dh2"></span>
+					<span class="center divider">/</span>
+					<span class="center lows" id="dl2"></span>
+				</div>
+			</td>
+			<td>
+				<div class="top-cal">
+					<span class="center month" id="dm3"></span>
+					<span class="center day" id="dd3"></span>
+				</div>
+				<div class="bot-cal">
+					<span class="center week" id="dw3"></span>
+				</div>
+				<div class="weather-icon">
+					<span class="center icon"><img id="di3" src="." alt="."></span>
+				</div>
+				<div class="temps">
+					<span class="center highs" id="dh3"></span>
+					<span class="center divider">/</span>
+					<span class="center lows" id="dl3"></span>
+				</div>
+			</td>
+			<td>
+				<div class="top-cal">
+					<span class="center month" id="dm4"></span>
+					<span class="center day" id="dd4"></span>
+				</div>
+				<div class="bot-cal">
+					<span class="center week" id="dw4"></span>
+				</div>
+				<div class="weather-icon">
+					<span class="center icon"><img id="di4" src="." alt="."></span>
+				</div>
+				<div class="temps">
+					<span class="center highs" id="dh4"></span>
+					<span class="center divider">/</span>
+					<span class="center lows" id="dl4"></span>
+				</div>
+			</td>
+		</tr>
+	</table>
+</body>
+</html>
