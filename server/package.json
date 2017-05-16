@@ -1,0 +1,30 @@
+{
+  "name": "weather-station-server",
+  "version": "0.0.1",
+  "description": "Weather Station Server",
+  "main": "index.js",
+  "author": "ProjectZed",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ProjectZed/WeatherStation.git"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "dependencies": {
+    "body-parser": "^1.17.1",
+    "express": "^4.15.2",
+    "express-jsonschema": "^1.1.6",
+    "mongo-express": "^0.40.0",
+    "mongodb": "^2.2.26"
+  },
+  "devDependencies": {
+    "eslint": "^3.19.0",
+    "eslint-plugin-mocha": "^4.9.0",
+    "eslint-plugin-node": "^4.2.2",
+    "mocha": "^3.4.1",
+    "should": "^11.2.1",
+    "supertest": "^3.0.0"
+  }
+}
